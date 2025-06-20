@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Login - CablePro{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h3><i class="fas fa-tv"></i> Welcome to CablePro</h3>
+            <p class="text-muted">Please sign in to continue</p>
+        </div>
+        <div class="auth-body">
+            <!-- Flashed messages will appear here -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form id="loginForm" method="POST" action="{{ url_for('login') }}" novalidate>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                        </div>
+                        <input type="email" class="form-control" id="email" name="email" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                        </div>
+                        <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg btn-block mt-4">
+                    <i class="fas fa-sign-in-alt"></i> Sign In
+                </button>
+            </form>
+        </div>
+        <div class="auth-footer">
+            <p class="mb-1">Don't have an account? <a href="{{ url_for('register') }}">Create one</a></p>
+            <a href="{{ url_for('forgot_password') }}">Forgot Password?</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+    body {
+        background: #f4f7f6;
+        padding-top: 0 !important;
+    }
+    .navbar { display: none !important; }
+    .main-content { margin-top: 0 !important; }
+    .alert {
+        margin-top: -1rem;
+        margin-bottom: 1rem;
+    }
+    .auth-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        width: 100%;
+    }
+    .auth-card {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        width: 100%;
+        max-width: 420px;
+        overflow: hidden;
+    }
+    .auth-header {
+        padding: 30px;
+        text-align: center;
+        border-bottom: 1px solid #e9ecef;
+    }
+    .auth-header h3 {
+        color: #343a40;
+        margin-bottom: 5px;
+    }
+    .auth-body {
+        padding: 30px;
+    }
+    .auth-footer {
+        background: #f8f9fa;
+        padding: 20px 30px;
+        text-align: center;
+        border-top: 1px solid #e9ecef;
+    }
+    .auth-footer a {
+        font-weight: 600;
+        color: #007bff;
+    }
+    .btn-lg {
+        font-weight: 600;
+    }
+    /* Shake animation for login error */
+    @keyframes shake {
+        10%, 90% { transform: translate3d(-1px, 0, 0); }
+        20%, 80% { transform: translate3d(2px, 0, 0); }
+        30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+        40%, 60% { transform: translate3d(4px, 0, 0); }
+    }
+    .shake {
+        animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+    }
+</style>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // If there is a flashed message with the 'danger' category, shake the form
+        {% if get_flashed_messages(category_filter=['danger']) %}
+            document.getElementById('loginForm').classList.add('shake');
+        {% endif %}
+    });
+</script>
+{% endblock %}

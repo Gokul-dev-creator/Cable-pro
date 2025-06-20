@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% block title %}Record Payment{% endblock %}
+
+{% block content %}
+<h2>Record Payment</h2>
+<form method="POST">
+    <div class="form-group">
+        <label for="customer_id_select">Customer *</label> <!-- Changed id for JS targeting -->
+        <select class="form-control" id="customer_id_select" name="customer_id" required>
+            <option value="">-- Select Customer --</option>
+            {% for cust in customers %} <!-- 'customers' is passed from app.py -->
+            <option value="{{ cust.id }}" 
+                    {% if form_values and form_values.get('customer_id')|int == cust.id %}selected
+                    {% elif not form_values and customer_id_prefill == cust.id %}selected
+                    {% endif %}>
+                {{ cust.name }} (STB: {{ cust.set_top_box_number }}) - Plan: ₹{{ "%.2f"|format(cust.monthly_charge) }}
+            </option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="payment_date">Payment Date *</label>
+            <input type="date" class="form-control" id="payment_date" name="payment_date" value="{{ form_values.get('payment_date') if form_values else today_date }}" required>
+        </div>
+        <div class="form-group col-md-6">
+            <label for="amount_paid">Amount Paid (₹) *</label>
+            <input type="number" step="0.01" class="form-control" id="amount_paid" name="amount_paid" placeholder="Default to monthly charge if blank" value="{{ form_values.get('amount_paid') if form_values else (default_amount if default_amount else '') }}">
+             <small class="form-text text-muted">Leave blank to use customer's monthly plan charge.</small>
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="payment_method">Payment Method *</label>
+            <select class="form-control" id="payment_method" name="payment_method" required>
+                <option value="Cash" {% if form_values and form_values.get('payment_method') == 'Cash' %}selected{% elif not form_values %}selected{% endif %}>Cash</option>
+                <option value="Online" {% if form_values and form_values.get('payment_method') == 'Online' %}selected{% endif %}>Online</option>
+            </select>
+        </div>
+        <div class="form-group col-md-6">
+            <label for="transaction_reference">Transaction Reference (if Online)</label>
+            <input type="text" class="form-control" id="transaction_reference" name="transaction_reference" value="{{ form_values.get('transaction_reference') if form_values else '' }}">
+        </div>
+    </div>
+    <div class="form-row">
+        <div class="form-group col-md-6">
+            <label for="billing_period_month">Billing Period Month *</label>
+            <select class="form-control" id="billing_period_month" name="billing_period_month" required>
+                {% for month in billing_months %}
+                <option value="{{ month.value }}" 
+                        {% if form_values and form_values.get('billing_period_month')|int == month.value %}selected
+                        {% elif not form_values and month.value == current_month %}selected
+                        {% endif %}>{{ month.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group col-md-6">
+            <label for="billing_period_year">Billing Period Year *</label>
+            <select class="form-control" id="billing_period_year" name="billing_period_year" required>
+                {% for year_val in billing_years %}
+                <option value="{{ year_val }}" 
+                        {% if form_values and form_values.get('billing_period_year')|int == year_val %}selected
+                        {% elif not form_values and year_val == current_year %}selected
+                        {% endif %}>{{ year_val }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+     <!-- The 'Received By' field has been removed. 
+         This will be handled automatically in the backend using the logged-in user's details. -->
+    <button type="submit" class="btn btn-primary"><i class="fas fa-check"></i> Record Payment</button>
+    <a href="{{ url_for('index') }}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    $('#customer_id_select').select2({
+        theme: "bootstrap" 
+    });
+});
+</script>
+{% endblock %}
