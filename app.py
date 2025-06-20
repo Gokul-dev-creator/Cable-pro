@@ -15,9 +15,8 @@ from weasyprint import HTML, CSS
 
 # --- App and DB Configuration ---g
 app = Flask(__name__)
-app.config ['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_very_secret_key_that_should_be_changed')
-# THIS IS THE CORRECT PRODUCTION-READY VERSION
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'a_very_secret_key_that_should_be_changed')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SUPABASE_DB_URL']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # --- Initialize Extensions ---
