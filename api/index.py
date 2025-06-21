@@ -11,7 +11,7 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
-from weasyprint import HTML, CSS
+# from weasyprint import HTML, CSS
 
 # --- App and DB Configuration ---g
 app = Flask(__name__)
@@ -440,27 +440,8 @@ def payments_log():
 @app.route('/payments/export_pdf')
 @login_required
 def export_payments_pdf():
-    start_date_str = request.args.get('start_date')
-    end_date_str = request.args.get('end_date')
-
-    if not start_date_str or not end_date_str:
-        flash("Please provide both a start and end date for the PDF export.", "danger")
-        return redirect(url_for('payments_log'))
-    
-    start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
-    end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
-
-    query = Payment.query.join(Customer).filter(Payment.payment_date.between(start_date, end_date))
-    if not current_user.is_admin:
-        query = query.filter(Customer.operator_id == current_user.id)
-    
-    payments = query.order_by(Payment.payment_date.asc()).all()
-    total_collection = sum(p.amount_paid for p in payments)
-
-    html = render_template('report_pdf_template.html', payments=payments, start_date=start_date, end_date=end_date, operator_name=current_user.name, total_collection=total_collection)
-    pdf = HTML(string=html).write_pdf()
-    
-    return Response(pdf, mimetype='application/pdf', headers={'Content-Disposition': 'attachment;filename=payments_report.pdf'})
+    flash("PDF export is temporarily disabled on this deployment.", "warning")
+    return redirect(url_for('payments_log'))
 
 @app.route('/reports')
 @login_required
