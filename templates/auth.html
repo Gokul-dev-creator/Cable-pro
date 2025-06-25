@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='icons/favicon.png') }}">
+    <title>Welcome - CablePro</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" integrity="sha512-1ycn6IcaQQ40/MKBW2W4Rhis/DbILU74C1vSrLJxCq57o941Ym01SwNsOMqvEBFlcgUa6xLiPY/NS5R+E6ztJQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Basic Reset and Font */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f6f5f7;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            font-family: 'Montserrat', sans-serif;
+            height: 100vh;
+            margin: -20px 0 50px;
+            background: linear-gradient(to right, #f6f3f8, #088f6d); /* CablePro theme gradient */
+        }
+
+        /* Main Container */
+        .container {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
+            position: relative;
+            overflow: hidden;
+            width: 768px;
+            max-width: 100%;
+            min-height: 520px; /* Increased height slightly */
+        }
+
+        /* Form Styling */
+        .form-container {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            transition: all 0.6s ease-in-out;
+        }
+
+        .sign-in-container {
+            left: 0;
+            width: 50%;
+            z-index: 2;
+        }
+
+        .sign-up-container {
+            left: 0;
+            width: 50%;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        form {
+            background-color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 50px;
+            height: 100%;
+            text-align: center;
+        }
+
+        h1 {
+            font-weight: bold;
+            margin: 0;
+        }
+
+        p {
+            font-size: 14px;
+            font-weight: 100;
+            line-height: 20px;
+            letter-spacing: 0.5px;
+            margin: 20px 0 30px;
+        }
+
+        span {
+            font-size: 12px;
+        }
+
+        a {
+            color: #333;
+            font-size: 14px;
+            text-decoration: none;
+            margin: 15px 0;
+        }
+
+        button {
+            border-radius: 20px;
+            border: 1px solid #00416a;
+            background-color: #00416a;
+            color: #ffffff;
+            font-size: 12px;
+            font-weight: bold;
+            padding: 12px 45px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: transform 80ms ease-in;
+            cursor: pointer;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        button:focus {
+            outline: none;
+        }
+
+        button.ghost {
+            background-color: transparent;
+            border-color: #ffffff;
+        }
+
+        input, textarea {
+            background-color: #eee;
+            border: none;
+            padding: 12px 15px;
+            margin: 8px 0;
+            width: 100%;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 50px;
+        }
+
+        /* Overlay Styling */
+        .overlay-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            transition: transform 0.6s ease-in-out;
+            z-index: 100;
+        }
+
+        .overlay {
+            background: #00416a;
+            background: linear-gradient(to right, #005a6a, #002b4a);
+            background-repeat: no-repeat;
+            background-size: cover;
+            background-position: 0 0;
+            color: #ffffff;
+            position: relative;
+            left: -100%;
+            height: 100%;
+            width: 200%;
+            transform: translateX(0);
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .overlay-panel {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 40px;
+            text-align: center;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            transform: translateX(0);
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .overlay-left {
+            transform: translateX(-20%);
+        }
+
+        .overlay-right {
+            right: 0;
+            transform: translateX(0);
+        }
+        
+        /* Flashed Messages */
+        .flashed-messages {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 200;
+            width: 80%;
+            text-align: center;
+        }
+
+        .alert {
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .alert-danger { background-color: #dc3545; }
+        .alert-success { background-color: #28a745; }
+
+        /* Animation Classes (controlled by JS) */
+        .container.right-panel-active .sign-in-container {
+            transform: translateX(100%);
+        }
+
+        .container.right-panel-active .overlay-container {
+            transform: translateX(-100%);
+        }
+
+        .container.right-panel-active .overlay {
+            transform: translateX(50%);
+        }
+
+        .container.right-panel-active .overlay-left {
+            transform: translateX(0);
+        }
+
+        .container.right-panel-active .overlay-right {
+            transform: translateX(20%);
+        }
+
+        .container.right-panel-active .sign-up-container {
+            transform: translateX(100%);
+            opacity: 1;
+            z-index: 5;
+            animation: show 0.6s;
+        }
+
+        @keyframes show {
+            0%, 49.99% { opacity: 0; z-index: 1; }
+            50%, 100% { opacity: 1; z-index: 5; }
+        }
+
+        /* === RESPONSIVE DESIGN FIX === */
+        @media (max-width: 768px) {
+            body {
+                height: auto;
+                margin: 0;
+                padding: 20px 0;
+            }
+            .container {
+                width: 95%;
+                min-height: 600px;
+                box-shadow: none;
+            }
+            /* Hide the overlay and its animations on mobile */
+            .overlay-container {
+                display: none;
+            }
+            .form-container {
+                width: 100%;
+                position: static; /* Change from absolute to static */
+                height: auto;
+            }
+            .sign-in-container {
+                /* This will be the default view */
+            }
+            .sign-up-container {
+                opacity: 1;
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                /* It will be revealed by the JS class */
+            }
+            /* Adjust the JS-controlled animation for a simple fade/transform */
+             .container.right-panel-active .sign-in-container {
+                transform: none; /* Disable horizontal slide */
+                opacity: 0; /* Hide it instead */
+            }
+             .container.right-panel-active .sign-up-container {
+                transform: none; /* Disable horizontal slide */
+                z-index: 5;
+            }
+             /* Add ghost buttons to mobile view to toggle */
+            .mobile-toggle {
+                display: block;
+                margin-top: 20px;
+                font-weight: bold;
+                color: #00416a;
+                cursor: pointer;
+            }
+        }
+        .mobile-toggle {
+            display: none; /* Hidden on desktop */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="container">
+        <!-- Flashed Messages Container -->
+        <div class="flashed-messages">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+        </div>
+        
+        <!-- SIGN UP (REGISTER) FORM -->
+        <div class="form-container sign-up-container">
+            <form action="{{ url_for('register') }}" method="POST">
+                <h1>Create Account</h1>
+                <span>All new accounts are created as Operators</span>
+                <input type="text" name="name" placeholder="Full Name" required/>
+                <input type="email" name="email" placeholder="Email" required/>
+                <textarea name="address" placeholder="Address"></textarea>
+                <input type="password" name="password" placeholder="Password" required/>
+                <button type="submit">Sign Up</button>
+                <a class="mobile-toggle" id="signInMobile">Already have an account? Sign In</a>
+            </form>
+        </div>
+
+        <!-- SIGN IN (LOGIN) FORM -->
+        <div class="form-container sign-in-container">
+            <form action="{{ url_for('login') }}" method="POST">
+                <h1>Welcome back  operator   </h1>
+                <span>Use your operator account details </span>
+                <input type="email" name="email" placeholder="Email" required/>
+                <input type="password" name="password" placeholder="Password" required/>
+                <a href="{{ url_for('forgot_password') }}">Forgot your password?</a>
+                <button type="submit">Sign In</button>
+                <a class="mobile-toggle" id="signUpMobile">Don't have an account? Sign Up</a>
+            </form>
+        </div>
+
+        <!-- OVERLAY PANELS -->
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>Welcome Back!</h1>
+                    <p>To keep connected with us please login with your personal info</p>
+                    <button class="ghost" id="signIn">Sign In</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>Hello, Operator!</h1>
+                    <p>Enter your personal details and start your journey with us</p>
+                    <button class="ghost" id="signUp">Sign Up</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const signUpButton = document.getElementById('signUp');
+    const signInButton = document.getElementById('signIn');
+    // Mobile toggle links
+    const signUpMobileButton = document.getElementById('signUpMobile');
+    const signInMobileButton = document.getElementById('signInMobile');
+
+    const container = document.getElementById('container');
+
+    const addActiveClass = () => container.classList.add("right-panel-active");
+    const removeActiveClass = () => container.classList.remove("right-panel-active");
+
+    signUpButton.addEventListener('click', addActiveClass);
+    signInButton.addEventListener('click', removeActiveClass);
+    signUpMobileButton.addEventListener('click', addActiveClass);
+    signInMobileButton.addEventListener('click', removeActiveClass);
+
+    // On page load, check if we should show the register panel
+    document.addEventListener('DOMContentLoaded', () => {
+        {% if is_register %}
+            addActiveClass();
+        {% endif %}
+        
+        // If there are any flashed messages, keep the relevant panel active
+        {% if get_flashed_messages() %}
+            {% if 'account' in (get_flashed_messages()[0] | lower) or 'created' in (get_flashed_messages()[0] | lower) %}
+                 // Heuristic: if message contains 'account' or 'created', it's likely a registration message
+                 removeActiveClass(); // Show sign-in panel after successful registration
+            {% elif request.endpoint == 'register' %}
+                 addActiveClass();
+            {% endif %}
+        {% endif %}
+    });
+</script>
+
+</body>
+</html>

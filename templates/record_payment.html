@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Record Payment{% endblock %}
+
+{% block content %}
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Record New Payment</h6>
+    </div>
+    <div class="card-body">
+        <form method="POST" action="{{ url_for('record_payment') }}">
+            <div class="form-group">
+                <label for="customer_id_select">Select Customer *</label>
+                <select class="form-control" id="customer_id_select" name="customer_id" required>
+                    <option value="" disabled {% if not customer_id_prefill %}selected{% endif %}>-- Select a Customer --</option>
+                    {% for customer in customers %}
+                        <option value="{{ customer.id }}" 
+                                data-charge="{{ customer.monthly_charge }}"
+                                {% if customer_id_prefill and customer.id == customer_id_prefill %}selected{% endif %}>
+                            {{ customer.name }} (STB: {{ customer.set_top_box_number }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <label for="amount_paid">Amount Paid (₹)</label>
+                    <input type="number" step="0.01" class="form-control" id="amount_paid" name="amount_paid" placeholder="Leave blank for default charge" value="{{ default_amount or '' }}">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="payment_date">Payment Date *</label>
+                    <input type="date" class="form-control" id="payment_date" name="payment_date" value="{{ today_date }}" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Billing Period *</label>
+                <div class="row">
+                    <div class="col-md-6 mb-2 mb-md-0">
+                        <select class="form-control" name="billing_period_month" required>
+                            {% for month in billing_months %}
+                                <option value="{{ month.value }}" {% if month.value == current_month %}selected{% endif %}>{{ month.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <select class="form-control" name="billing_period_year" required>
+                            {% for year in billing_years %}
+                                <option value="{{ year }}" {% if year == current_year %}selected{% endif %}>{{ year }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group col-md-6">
+                    <label for="payment_method">Payment Method *</label>
+                    <select class="form-control" id="payment_method" name="payment_method" required>
+                        <option value="Cash" selected>Cash</option>
+                        <option value="Online">Online</option>
+                    </select>
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="transaction_reference">Transaction Reference (Optional)</label>
+                    <input type="text" class="form-control" id="transaction_reference" name="transaction_reference" placeholder="e.g., UPI ID, Receipt No.">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit Payment</button>
+            <a href="{{ url_for('dashboard') }}" class="btn btn-secondary">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    $('#customer_id_select').select2({
+        theme: 'bootstrap'
+    });
+
+    // Auto-fill amount when customer is selected
+    $('#customer_id_select').on('change', function() {
+        var selectedOption = $(this).find('option:selected');
+        var charge = selectedOption.data('charge');
+        $('#amount_paid').val(charge);
+    });
+});
+</script>
+{% endblock %}

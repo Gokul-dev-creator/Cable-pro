@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-3">
+    <h2 class="mb-2 mb-sm-0">Manage Users</h2>
+    <a href="{{ url_for('register') }}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add New User</a>
+</div>
+
+{% if users %}
+<!-- FIX: Added responsive wrapper for the table -->
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>
+                    {{ user.name }}
+                    {% if user.id == current_user.id %}
+                        <span class="badge badge-info">You</span>
+                    {% endif %}
+                </td>
+                <td>{{ user.email }}</td>
+                <td>
+                    {% if user.is_admin %}
+                        <span class="badge badge-success">Admin</span>
+                    {% else %}
+                        <span class="badge badge-secondary">Operator</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <!-- Form to toggle admin status -->
+                    <form action="{{ url_for('toggle_admin', user_id=user.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" 
+                                class="btn btn-sm btn-{% if user.is_admin %}warning{% else %}info{% endif %}" 
+                                title="{% if user.is_admin %}Demote to Operator{% else %}Promote to Admin{% endif %}"
+                                {% if user.id == current_user.id %}disabled{% endif %}>
+                            <i class="fas fa-user-shield"></i>
+                        </button>
+                    </form>
+
+                    <!-- Form to delete user -->
+                    <form action="{{ url_for('delete_user', user_id=user.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete the user {{ user.name }} ({{ user.email }})? This action cannot be undone.');">
+                        <button type="submit" 
+                                class="btn btn-sm btn-danger ml-1" 
+                                title="Delete User"
+                                {% if user.id == current_user.id %}disabled{% endif %}>
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+    <p>No other users found. <a href="{{ url_for('register') }}">Add one now.</a></p>
+{% endif %}
+{% endblock %}

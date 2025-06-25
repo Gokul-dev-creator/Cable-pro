@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+{% block title %}Reports{% endblock %}
+
+{% block content %}
+<h2>Reports</h2>
+
+<div class="mb-4 d-flex flex-wrap">
+    <a href="{{ url_for('outstanding_payments_report') }}" class="btn btn-info mr-2 mb-2">Outstanding Payments</a>
+    <a href="{{ url_for('collections_report') }}" class="btn btn-info mb-2">Collections Report</a>
+</div>
+<hr>
+
+{% if report_type == 'outstanding' %}
+    <h3>Outstanding Payments Report (for {{ selected_month_name }} {{ report_year }})</h3>
+    <!-- FIX: Made form responsive -->
+    <form method="GET" action="{{ url_for('outstanding_payments_report') }}" class="form-inline mb-3">
+        <div class="form-group mr-2 mb-2">
+            <label for="month" class="mr-1">Month:</label>
+            <select name="month" id="month" class="form-control">
+                {% for m in billing_months %}
+                <option value="{{ m.value }}" {% if m.value == report_month %}selected{% endif %}>{{ m.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group mr-2 mb-2">
+            <label for="year" class="mr-1">Year:</label>
+            <select name="year" id="year" class="form-control">
+                {% for y in billing_years %}
+                <option value="{{ y }}" {% if y == report_year %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary mb-2">Generate</button>
+    </form>
+
+    {% if outstanding_customers %}
+    <!-- FIX: Added responsive wrapper -->
+    <div class="table-responsive">
+        <table class="table table-sm table-bordered">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Address</th>
+                    <th>Plan</th>
+                    <th>Monthly Charge</th>
+                    <th>STB No.</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for customer in outstanding_customers %}
+                <tr>
+                    <td>{{ customer.name }}</td>
+                    <td>{{ customer.phone_number }}</td>
+                    <td>{{ customer.address }}</td>
+                    <td>{{ customer.plan_details }}</td>
+                    <td>₹ {{ "%.2f"|format(customer.monthly_charge) }}</td>
+                    <td>{{ customer.set_top_box_number }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% elif request.args.get('month') and request.args.get('year') %}
+    <p>No outstanding payments found for the selected period.</p>
+    {% else %}
+    <p>Please select a month and year to generate the report.</p>
+    {% endif %}
+{% endif %}
+
+
+{% if report_type == 'collections' %}
+    <h3>Collections Report</h3>
+    <!-- FIX: Made form responsive -->
+    <form method="GET" action="{{ url_for('collections_report') }}" class="form-inline mb-3">
+        <div class="form-group mr-2 mb-2">
+            <label for="start_date" class="mr-1">Start Date:</label>
+            <input type="date" name="start_date" id="start_date" class="form-control" value="{{ start_date if start_date else today_date }}" required>
+        </div>
+        <div class="form-group mr-2 mb-2">
+            <label for="end_date" class="mr-1">End Date:</label>
+            <input type="date" name="end_date" id="end_date" class="form-control" value="{{ end_date if end_date else today_date }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary mb-2">Generate</button>
+    </form>
+
+    {% if _form_submitted_and_valid %}
+        <h4>Summary ({{ start_date }} to {{ end_date }})</h4>
+        <div class="row">
+            <div class="col-md-4"><strong>Total Cash:</strong> ₹ {{ "%.2f"|format(total_cash) }}</div>
+            <div class="col-md-4"><strong>Total Online:</strong> ₹ {{ "%.2f"|format(total_online) }}</div>
+            <div class="col-md-4"><strong>Grand Total:</strong> ₹ {{ "%.2f"|format(grand_total) }}</div>
+        </div>
+        <hr>
+        {% if collections %}
+        <h5>Individual Payments:</h5>
+        <!-- FIX: Added responsive wrapper -->
+        <div class="table-responsive">
+            <table class="table table-sm table-bordered">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Customer</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Billing Period</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in collections %}
+                    <tr>
+                        <td>{{ payment.payment_date.strftime('%d-%b-%Y') }}</td>
+                        <td>{{ payment.customer.name }}</td>
+                        <td>₹ {{ "%.2f"|format(payment.amount_paid) }}</td>
+                        <td>{{ payment.payment_method }}</td>
+                        <td>{{ payment.billing_period_display }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p>No collections found for the selected period.</p>
+        {% endif %}
+    {% else %}
+        <p>Please select a date range to generate the collections report.</p>
+    {% endif %}
+{% endif %}
+
+{% if not report_type %}
+    <p>Select a report type from above to get started.</p>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}Manage Customers{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center mb-3">
+    <h2 class="mb-2 mb-sm-0">Manage Customers</h2>
+    <a href="{{ url_for('add_customer') }}" class="btn btn-primary"><i class="fas fa-user-plus"></i> Add New Customer</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="fas fa-exchange-alt"></i> Import / Export Customer Data
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <!-- FIX: Added responsive border class -->
+            <div class="col-md-6 mb-3 mb-md-0 border-md-right">
+                <h5><i class="fas fa-file-export"></i> Export Customers</h5>
+                <p class="text-muted">Download a CSV file of your current customers.</p>
+                <a href="{{ url_for('export_customers') }}" class="btn btn-success"><i class="fas fa-download"></i> Export as CSV</a>
+            </div>
+            <div class="col-md-6">
+                <h5><i class="fas fa-file-import"></i> Import Customers</h5>
+                <form action="{{ url_for('import_customers') }}" method="post" enctype="multipart/form-data" class="mt-2">
+                    <div class="form-group">
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="csvFile" name="file" accept=".csv" required>
+                            <label class="custom-file-label" for="csvFile">Choose CSV file...</label>
+                        </div>
+                         <small class="form-text text-muted mt-2">Required headers: name, address, monthly_charge, set_top_box_number.</small>
+                    </div>
+                    <button type="submit" class="btn btn-info"><i class="fas fa-upload"></i> Import from CSV</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Form -->
+<form method="GET" action="{{ url_for('customers_list') }}" class="form-inline mb-3">
+    <div class="input-group flex-grow-1">
+        <input type="text" class="form-control" name="search_customers" placeholder="Search Name, STB, Address, Phone" value="{{ search_query_customers or '' }}">
+        <div class="input-group-append">
+            <button class="btn btn-outline-secondary" type="submit"><i class="fas fa-search"></i></button>
+        </div>
+    </div>
+    {% if search_query_customers %}
+        <a href="{{ url_for('customers_list') }}" class="btn btn-outline-info ml-2 mt-2 mt-sm-0">Clear Search</a>
+    {% endif %}
+</form>
+
+{% if customers %}
+<!-- FIX: Added responsive wrapper for the table -->
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Address</th>
+                <th>Phone</th>
+                <th>Plan</th>
+                <th>Charge (₹)</th>
+                <th>STB No.</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for customer in customers %}
+            <tr>
+                <td>{{ customer.name }}</td>
+                <td>{{ customer.address }}</td>
+                <td>{{ customer.phone_number }}</td>
+                <td>{{ customer.plan_details }}</td>
+                <td>{{ "%.2f"|format(customer.monthly_charge) }}</td>
+                <td>{{ customer.set_top_box_number }}</td>
+                <td>
+                    <span class="badge badge-{% if customer.status == 'Active' %}success{% elif customer.status == 'Inactive' %}secondary{% else %}warning{% endif %}">
+                        {{ customer.status }}
+                    </span>
+                </td>
+                <td class="d-flex flex-wrap">
+                    <a href="{{ url_for('edit_customer', customer_id=customer.id) }}" class="btn btn-sm btn-info mr-1 mb-1" title="Edit"><i class="fas fa-edit"></i></a>
+                    <form action="{{ url_for('delete_customer', customer_id=customer.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete {{customer.name}}? This will also delete their payments.');">
+                        <button type="submit" class="btn btn-sm btn-danger mr-1 mb-1" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                    </form>
+                    <a href="{{ url_for('record_payment', customer_id_prefill=customer.id) }}" class="btn btn-sm btn-success mb-1" title="Add Payment"><i class="fas fa-dollar-sign"></i></a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+    {% if search_query_customers %}
+        <p>No customers found matching "<strong>{{ search_query_customers }}</strong>". <a href="{{ url_for('customers_list') }}">Clear search</a>.</p>
+    {% else %}
+        <p>No customers found. <a href="{{ url_for('add_customer') }}">Add one now!</a></p>
+    {% endif %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+// To make the file input show the selected file name
+$('.custom-file-input').on('change', function() {
+   let fileName = $(this).val().split('\\').pop();
+   $(this).next('.custom-file-label').addClass("selected").html(fileName);
+});
+</script>
+{% endblock %}
