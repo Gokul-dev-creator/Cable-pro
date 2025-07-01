@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-7">
+        <div class="card shadow-sm">
+            <div class="card-header">
+                <h4 class="mb-0">My Profile</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('profile') }}">
+                    <h5 class="mb-3">Personal Information</h5>
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" class="form-control" id="email" value="{{ current_user.email }}" readonly>
+                        <small class="form-text text-muted">Your email address cannot be changed.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" class="form-control" id="name" name="name" value="{{ current_user.name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Address</label>
+                        <textarea class="form-control" id="address" name="address" rows="3">{{ current_user.address }}</textarea>
+                    </div>
+                    
+                    <hr class="my-4">
+
+                    <h5 class="mb-3">Change Password</h5>
+                    <p class="text-muted small">Leave the fields below blank if you do not wish to change your password.</p>
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="new_password">New Password</label>
+                            <input type="password" class="form-control" id="new_password" name="new_password">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="confirm_password">Confirm New Password</label>
+                            <input type="password" class="form-control" id="confirm_password" name="confirm_password">
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary mt-3">Update Profile</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
