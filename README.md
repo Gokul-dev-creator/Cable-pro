@@ -4,7 +4,7 @@ CablePro is a comprehensive web application designed to help cable TV operators 
 
  # Preview 
 
-<img src="https://github.com/Gokul-dev-creator/Cable-pro/blob/main/static/images/preview.PNG">
+<img src="https://github.com/Gokul-dev-creator/Cable-pro/blob/main/static/images/preview.gif">
 
 ---
 
