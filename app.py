@@ -135,9 +135,10 @@ def create_app():
         
     @app.route("/register", methods=['GET', 'POST'])
     def register():
-        if current_user.is_authenticated:
+        if current_user.is_authenticated and not current_user.is_admin:
+            flash("You are already logged in.", "info")
             return redirect(url_for('root'))
-            
+        
         if request.method == 'POST':
             user_exists = User.query.filter_by(email=request.form.get('email')).first()
             if user_exists:
@@ -153,8 +154,13 @@ def create_app():
             new_user.set_password(request.form.get('password'))
             db.session.add(new_user)
             db.session.commit()
-            flash('Account created successfully! Please log in.', 'success')
-            return redirect(url_for('login'))
+            
+            if current_user.is_authenticated and current_user.is_admin:
+                flash(f'New operator account for {new_user.name} created successfully!', 'success')
+                return redirect(url_for('manage_users'))
+            else:
+                flash('Account created successfully! Please log in.', 'success')
+                return redirect(url_for('login'))
             
         return render_template('auth.html', is_register=True)
 
@@ -162,7 +168,6 @@ def create_app():
     def forgot_password():
         return render_template('forgot_password.html')
 
-    # --- NEW: USER PROFILE ROUTE ---
     @app.route('/profile', methods=['GET', 'POST'])
     @login_required
     def profile():
@@ -173,21 +178,27 @@ def create_app():
             new_password = request.form.get('new_password')
             confirm_password = request.form.get('confirm_password')
 
-            # Update name and address
+            # Update the user object's attributes in memory
             current_user.name = name
             current_user.address = address
 
-            # Handle password change
+            # Handle password change if a new password was provided
             if new_password:
-                if new_password == confirm_password:
-                    current_user.set_password(new_password)
-                    flash('Your password has been updated.', 'success')
-                else:
+                if new_password != confirm_password:
                     flash('New passwords do not match.', 'danger')
                     return redirect(url_for('profile'))
-            
-            db.session.commit()
-            flash('Your profile has been updated successfully!', 'success')
+                current_user.set_password(new_password)
+
+            try:
+                # Explicitly add the modified user object to the session to mark for saving.
+                db.session.add(current_user)
+                # Commit the changes to the database.
+                db.session.commit()
+                flash('Your profile has been updated successfully!', 'success')
+            except Exception as e:
+                db.session.rollback()
+                flash(f'An error occurred while updating your profile: {e}', 'danger')
+
             return redirect(url_for('profile'))
 
         return render_template('profile.html')
@@ -376,9 +387,12 @@ def create_app():
                 db.session.commit()
                 flash(f'Payment for {customer.name} recorded!', 'success')
                 return redirect(url_for('root'))
-        prefill_customer = Customer.query.get(request.args.get('customer_id_prefill', type=int))
+        prefill_customer = None
+        customer_id_prefill = request.args.get('customer_id_prefill', type=int)
+        if customer_id_prefill:
+            prefill_customer = Customer.query.get(customer_id_prefill)
         default_amount = prefill_customer.monthly_charge if prefill_customer and (current_user.is_admin or prefill_customer.operator_id == current_user.id) else None
-        return render_template('record_payment.html', customers=customers, today_date=date.today().isoformat(), billing_months=get_billing_periods()[0], billing_years=get_billing_periods()[1], current_month=datetime.now().month, current_year=datetime.now().year, customer_id_prefill=request.args.get('customer_id_prefill', type=int), default_amount=default_amount)
+        return render_template('record_payment.html', customers=customers, today_date=date.today().isoformat(), billing_months=get_billing_periods()[0], billing_years=get_billing_periods()[1], current_month=datetime.now().month, current_year=datetime.now().year, customer_id_prefill=customer_id_prefill, default_amount=default_amount)
 
     @app.route('/payments/log')
     @login_required
@@ -463,7 +477,7 @@ def create_app():
             print("Default admin created.")
         else:
             print("Admin user already exists.")
-
+            
     return app
 
 if __name__ == '__main__':
